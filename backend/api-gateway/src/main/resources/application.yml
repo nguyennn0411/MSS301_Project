@@ -1,0 +1,44 @@
+server:
+  port: ${SERVER_PORT:8080}
+
+spring:
+  application:
+    name: api-gateway
+  cloud:
+    gateway:
+      routes:
+        - id: customer-service
+          uri: lb://customer-service
+          predicates:
+            - Path=/api/customers/**
+          filters:
+            - StripPrefix=1
+        - id: car-service
+          uri: lb://car-service
+          predicates:
+            - Path=/api/cars/**,/api/suppliers/**,/api/manufacturers/**
+          filters:
+            - StripPrefix=1
+        - id: renting-service
+          uri: lb://renting-service
+          predicates:
+            - Path=/api/rentings/**
+          filters:
+            - StripPrefix=1
+
+app:
+  admin:
+    email: ${ADMIN_USERNAME:admin}
+    password: ${ADMIN_PASSWORD:admin}
+  jwt:
+    secret: 9f3af4f63dbe46a89031dc97f1d314c9782f5a1f4a66f6a2f7dfeeb0d1a4e683
+    expiration-minutes: 180
+  services:
+    customer-url: http://customer-service
+
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_URL:http://localhost:8761/eureka/}
+  instance:
+    prefer-ip-address: true

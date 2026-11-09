@@ -1,0 +1,10 @@
+.maintenance-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  padding: 14px;
+  background: #f6f8fc;
+  border-radius: 10px;
+}
+.maintenance-options > b { width: 100%; }
+.maintenance-options label { flex-direction: row; align-items: center; }

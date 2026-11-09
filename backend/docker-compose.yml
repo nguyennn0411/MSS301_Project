@@ -1,0 +1,163 @@
+name: fu_car_renting_system_student_id
+
+services:
+  customer-db:
+    image: mysql:8.4
+    container_name: fucar-customer-db
+    environment:
+      MYSQL_DATABASE: customer_db
+      MYSQL_ROOT_PASSWORD: root
+    ports: ["3311:3306"]
+    volumes: ["customer-mysql-data:/var/lib/mysql"]
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -uroot -proot --silent"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 30s
+    restart: unless-stopped
+
+  car-db:
+    image: mysql:8.4
+    container_name: fucar-car-db
+    environment:
+      MYSQL_DATABASE: car_db
+      MYSQL_ROOT_PASSWORD: root
+    ports: ["3312:3306"]
+    volumes: ["car-mysql-data:/var/lib/mysql"]
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -uroot -proot --silent"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 30s
+    restart: unless-stopped
+
+  rental-db:
+    image: mysql:8.4
+    container_name: fucar-rental-db
+    environment:
+      MYSQL_DATABASE: rental_db
+      MYSQL_ROOT_PASSWORD: root
+    ports: ["3313:3306"]
+    volumes: ["rental-mysql-data:/var/lib/mysql"]
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -uroot -proot --silent"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 30s
+    restart: unless-stopped
+
+  eureka-server:
+    build:
+      context: .
+      dockerfile: eureka-server/Dockerfile
+    container_name: fucar-eureka
+    ports: ["8761:8761"]
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8761/actuator/health | grep -q '\"status\":\"UP\"'"]
+      interval: 10s
+      timeout: 5s
+      retries: 15
+      start_period: 20s
+    restart: unless-stopped
+
+  customer-service:
+    build:
+      context: .
+      dockerfile: customer-service/Dockerfile
+    environment:
+      DB_URL: jdbc:mysql://customer-db:3306/customer_db?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+      DB_USERNAME: root
+      DB_PASSWORD: root
+      EUREKA_URL: http://eureka-server:8761/eureka/
+    depends_on:
+      customer-db: { condition: service_healthy }
+      eureka-server: { condition: service_healthy }
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8081/actuator/health | grep -q '\"status\":\"UP\"'"]
+      interval: 10s
+      timeout: 5s
+      retries: 15
+      start_period: 30s
+    restart: unless-stopped
+
+  car-service:
+    build:
+      context: .
+      dockerfile: car-service/Dockerfile
+    environment:
+      DB_URL: jdbc:mysql://car-db:3306/car_db?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+      DB_USERNAME: root
+      DB_PASSWORD: root
+      EUREKA_URL: http://eureka-server:8761/eureka/
+    depends_on:
+      car-db: { condition: service_healthy }
+      eureka-server: { condition: service_healthy }
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8082/actuator/health | grep -q '\"status\":\"UP\"'"]
+      interval: 10s
+      timeout: 5s
+      retries: 15
+      start_period: 30s
+    restart: unless-stopped
+
+  renting-service:
+    build:
+      context: .
+      dockerfile: renting-service/Dockerfile
+    environment:
+      DB_URL: jdbc:mysql://rental-db:3306/rental_db?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+      DB_USERNAME: root
+      DB_PASSWORD: root
+      EUREKA_URL: http://eureka-server:8761/eureka/
+    depends_on:
+      rental-db: { condition: service_healthy }
+      eureka-server: { condition: service_healthy }
+      customer-service: { condition: service_healthy }
+      car-service: { condition: service_healthy }
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8083/actuator/health | grep -q '\"status\":\"UP\"'"]
+      interval: 10s
+      timeout: 5s
+      retries: 15
+      start_period: 30s
+    restart: unless-stopped
+
+  api-gateway:
+    build:
+      context: .
+      dockerfile: api-gateway/Dockerfile
+    container_name: fucar-api-gateway
+    environment:
+      EUREKA_URL: http://eureka-server:8761/eureka/
+      ADMIN_USERNAME: admin
+      ADMIN_PASSWORD: admin
+    ports: ["${API_GATEWAY_PORT:-8088}:8080"]
+    depends_on:
+      eureka-server: { condition: service_healthy }
+      customer-service: { condition: service_healthy }
+      car-service: { condition: service_healthy }
+      renting-service: { condition: service_healthy }
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8080/actuator/health | grep -q '\"status\":\"UP\"'"]
+      interval: 10s
+      timeout: 5s
+      retries: 15
+      start_period: 30s
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ../frontend
+    container_name: fucar-frontend
+    ports: ["5173:80"]
+    depends_on:
+      api-gateway: { condition: service_healthy }
+    restart: unless-stopped
+
+volumes:
+  customer-mysql-data:
+  car-mysql-data:
+  rental-mysql-data:

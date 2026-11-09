@@ -1,0 +1,104 @@
+/* ============================================================
+   PHẦN CSS GỐC CỦA BẠN (GIỮ NGUYÊN 100% THIẾT KẾ VÀ MÀU SẮC)
+   ============================================================ */
+
+.rental-status{display:inline-flex;align-items:center;padding:7px 11px;border-radius:999px;font-size:11px;font-weight:800;letter-spacing:.3px;background:#edf1f7;color:#526078}
+.rental-status.pending{background:#fff4d7;color:#a76a00}
+.rental-status.confirmed{background:#e2efff;color:#1462ca}
+.rental-status.renting{background:#eee7ff;color:#6b42c8}
+.rental-status.completed{background:#e2f8ed;color:#128051}
+.rental-status.cancelled,.rental-status.rejected{background:#fee8e8;color:#bd3e3e}
+.rental-heading{display:flex;align-items:center;justify-content:space-between;margin:24px 0}
+.rental-heading h1{font-size:40px;font-weight:800;margin:8px 0}
+.rental-heading p{color:var(--muted)}
+.rental-detail-grid{display:grid;grid-template-columns:1.4fr .7fr;gap:24px}
+.rental-detail-grid .panel,.rental-admin-detail{padding:25px}
+.rental-car-row{display:flex;align-items:center;gap:14px;padding:16px 0;border-bottom:1px solid var(--line)}
+.rental-car-row>i{display:grid;place-items:center;width:42px;height:42px;border-radius:11px;background:#e8f1ff;color:var(--blue);font-size:19px}
+.rental-car-row span{display:flex;flex:1;flex-direction:column}
+.rental-car-row small{color:var(--muted)}
+.rental-cost p{display:flex;justify-content:space-between;margin:13px 0;color:var(--muted)}
+.rental-cost p b{color:var(--ink)}
+.rental-cost>div{display:flex;justify-content:space-between;padding:18px 0;border-top:1px solid var(--line);font-weight:800}
+.rental-cost strong{color:var(--blue);font-size:20px}
+.rental-note{display:block;padding:12px;background:#f6f8fc;border-radius:9px;margin-bottom:16px}
+.rental-toolbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+.rental-toolbar select,.admin-create-rental select,.admin-create-rental input,.fee-form input,.fee-form textarea,.admin-note{border:1px solid var(--line);border-radius:9px;padding:10px 12px;background:#fff}
+
+/* Gốc của bạn là margin-top: 24px, dòng này sẽ được đè bằng CSS popup ở dưới khi mở modal */
+.rental-admin-detail{margin-top:24px} 
+
+.rental-admin-head{display:flex;align-items:center;gap:18px;border-bottom:1px solid var(--line);padding-bottom:16px}
+.rental-admin-head>div:first-child{flex:1}
+.rental-admin-head h3{margin:4px 0}
+.rental-admin-grid{display:grid;grid-template-columns:1.4fr .7fr;gap:35px;padding-top:20px}
+.rental-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:18px}
+.admin-note{width:100%;min-height:76px;margin-top:18px}
+.fee-form{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:20px;padding-top:18px;border-top:1px solid var(--line)}
+.fee-form label,.admin-create-rental label{display:flex;flex-direction:column;gap:6px;font-size:12px;font-weight:700}
+.fee-form .full{grid-column:1/-1}
+.admin-create-rental{display:grid;grid-template-columns:1.3fr 1fr 1fr auto;gap:14px;align-items:end;padding:20px;margin-bottom:22px}
+.admin-create-rental .car-select{grid-column:1/4}
+.admin-create-rental select,.admin-create-rental input{width:100%}
+
+@media(max-width:900px){
+  .rental-detail-grid,.rental-admin-grid{grid-template-columns:1fr}
+  .admin-create-rental{grid-template-columns:1fr 1fr}
+  .admin-create-rental .car-select{grid-column:1/-1}
+  .fee-form{grid-template-columns:1fr}
+  .rental-heading{align-items:flex-start}
+  .rental-actions{flex-wrap:wrap}
+}
+
+
+/* ============================================================
+   BỔ SUNG CẤU TRÚC POPUP (CHỈ THAY ĐỔI VỊ TRÍ HIỂN THỊ)
+   ============================================================ */
+
+/* Lớp phủ làm tối mờ nền phía sau */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.4); /* Nền tối nhẹ 40% */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999; /* Đảm bảo luôn đè lên toàn bộ trang */
+  animation: modalFadeIn 0.15s ease-out;
+}
+
+/* Đè lại thuộc tính để biến .rental-admin-detail cũ thành hộp thoại Popup */
+.modal-overlay .rental-admin-detail {
+  margin-top: 0 !important; /* Ghi đè margin-top cũ khi nằm trong popup */
+  position: relative;
+  width: 100%;
+  max-width: 760px; /* Chiều rộng tối đa vừa vặn cho cấu trúc grid của bạn */
+  max-height: 85vh; /* Giới hạn chiều cao tối đa không bị tràn màn hình */
+  overflow-y: auto; /* Tự động xuất hiện thanh cuộn dọc bên trong popup nếu nội dung dài */
+  margin: 20px;
+  
+  /* Đổ bóng nhẹ để làm nổi bật hộp thoại lên trên lớp phủ tối */
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25); 
+  animation: modalSlideUp 0.15s ease-out;
+  box-sizing: border-box;
+}
+
+/* Animation mượt mà cho hiệu ứng đóng mở */
+@keyframes modalFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes modalSlideUp {
+  from { 
+    transform: translateY(15px); 
+    opacity: 0; 
+  }
+  to { 
+    transform: translateY(0); 
+    opacity: 1; 
+  }
+}
